@@ -19,3 +19,4 @@
 
 - **Backend legadp:** A pasta `backend/` e toda a sua estrutura baseada em Node.js foram removidas do projeto.
 - **Arquivos de Configuração:** Arquivos de configuração do Firebase (`firebase.json`, `.firebaserc`, etc.) foram removidos da raiz do projeto para corrigir a inicialização incorreta.
+- **Pasta `.emergent` e seus metadados:** Removida para desvincular o projeto da ferramenta de criação.
