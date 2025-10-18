@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.0 - 2025-10-18
+
+### Adicionado
+
+- **Cálculo de Custo de Gás:** Implementado o cálculo automático de custo de gás (GLP) na tela de criação de receitas, com base no tempo e temperatura do forno.
+- O custo do gás agora é somado ao custo total da receita e salvo com os detalhes da receita.
+
 ## v1.0.0 - 2025-10-16
 
 ### Adicionado

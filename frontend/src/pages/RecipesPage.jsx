@@ -29,8 +29,10 @@ import {
 } from '../services/recipeService';
 import { getIngredients } from '../services/ingredientService';
 import { getPackagings } from '../services/packagingService';
+import { useAuth } from '../context/AuthContext';
 
 const RecipesPage = () => {
+  const { user } = useAuth();
   const [recipes, setRecipes] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [packagings, setPackagings] = useState([]);
@@ -45,19 +47,45 @@ const RecipesPage = () => {
     embalagem: null,
     rendimento: '1',
     precoVenda: '',
+    tempo_forno_min: '',
+    temperatura_forno_c: '',
+    custo_gas: 0,
   });
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    }
+  }, [user]);
+
+  // Effect to calculate gas cost
+  useEffect(() => {
+    const tempo = parseFloat(formData.tempo_forno_min) || 0;
+    const temp = parseFloat(formData.temperatura_forno_c) || 0;
+
+    if (tempo > 0 && temp > 0) {
+      const PRECO_KG_GAS = 9.77;
+      const CONSUMO_FORNO_PADRAO = 0.24; // kg/h a 180°C
+
+      const tempo_horas = tempo / 60;
+      const consumo_ajustado = CONSUMO_FORNO_PADRAO * (temp / 180);
+      const gas_consumido_kg = consumo_ajustado * tempo_horas;
+      const custo_gas_reais = gas_consumido_kg * PRECO_KG_GAS;
+
+      setFormData((prev) => ({ ...prev, custo_gas: custo_gas_reais }));
+    } else {
+      setFormData((prev) => ({ ...prev, custo_gas: 0 }));
+    }
+  }, [formData.tempo_forno_min, formData.temperatura_forno_c]);
+
 
   const loadData = async () => {
     try {
       setLoading(true);
       const [recipesData, ingredientsData, packagingsData] = await Promise.all([
-        getRecipes(),
-        getIngredients(),
-        getPackagings(),
+        getRecipes(user.uid),
+        getIngredients(user.uid),
+        getPackagings(user.uid),
       ]);
       setRecipes(recipesData);
       setIngredients(ingredientsData);
@@ -82,6 +110,11 @@ const RecipesPage = () => {
     // Add packaging cost
     if (recipe.embalagem && recipe.embalagem.custoCalculado) {
       custoTotal += recipe.embalagem.custoCalculado;
+    }
+    
+    // Add gas cost
+    if (recipe.custo_gas) {
+      custoTotal += recipe.custo_gas;
     }
 
     return custoTotal;
@@ -176,7 +209,7 @@ const RecipesPage = () => {
         lucro,
       };
 
-      await createRecipe(recipeData);
+      await createRecipe(recipeData, user.uid);
       toast.success('Receita criada com sucesso!');
       
       setDialogOpen(false);
@@ -194,7 +227,7 @@ const RecipesPage = () => {
       )
     ) {
       try {
-        await produceRecipe(recipe);
+        await produceRecipe(recipe, user.uid);
         toast.success('Receita produzida! Estoque atualizado.');
         loadData();
       } catch (error) {
@@ -206,7 +239,7 @@ const RecipesPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Deseja realmente excluir esta receita?')) {
       try {
-        await deleteRecipe(id);
+        await deleteRecipe(id, user.uid);
         toast.success('Receita excluída com sucesso!');
         loadData();
       } catch (error) {
@@ -222,6 +255,9 @@ const RecipesPage = () => {
       embalagem: null,
       rendimento: '1',
       precoVenda: '',
+      tempo_forno_min: '',
+      temperatura_forno_c: '',
+      custo_gas: 0,
     });
   };
 
@@ -383,6 +419,37 @@ const RecipesPage = () => {
                 </div>
               </div>
 
+              {/* Gas Calculation */}
+              <Card className="bg-secondary/30 p-4">
+                <h4 className="text-md font-semibold mb-2">Custo do Gás (Opcional)</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="tempo_forno_min">Tempo de forno (min)</Label>
+                    <Input
+                      id="tempo_forno_min"
+                      type="number"
+                      step="1"
+                      min="0"
+                      value={formData.tempo_forno_min}
+                      onChange={(e) => setFormData({ ...formData, tempo_forno_min: e.target.value })}
+                      placeholder="Ex: 50"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="temperatura_forno_c">Temperatura (°C)</Label>
+                    <Input
+                      id="temperatura_forno_c"
+                      type="number"
+                      step="10"
+                      min="0"
+                      value={formData.temperatura_forno_c}
+                      onChange={(e) => setFormData({ ...formData, temperatura_forno_c: e.target.value })}
+                      placeholder="Ex: 180"
+                    />
+                  </div>
+                </div>
+              </Card>
+
               {/* Etapas */}
               <div>
                 <div className="flex justify-between items-center mb-4">
@@ -487,6 +554,14 @@ const RecipesPage = () => {
                   <CardTitle>Resumo de Custos</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
+                  {formData.custo_gas > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span>Custo do Gás:</span>
+                      <span className="font-medium">
+                        R$ {formData.custo_gas.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span>Custo Total:</span>
                     <span className="font-bold text-lg">
@@ -592,6 +667,12 @@ const RecipesPage = () => {
 
               <Card className="bg-muted/50">
                 <CardContent className="pt-6 space-y-2">
+                  {selectedRecipe.custo_gas > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Custo do Gás:</span>
+                      <span className="font-medium">R$ {selectedRecipe.custo_gas.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span>Custo Total:</span>
                     <span className="font-bold">R$ {selectedRecipe.custoTotal.toFixed(2)}</span>
