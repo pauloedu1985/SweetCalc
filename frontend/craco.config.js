@@ -2,6 +2,9 @@
 const path = require("path");
 require("dotenv").config();
 
+const webpack = require("webpack");
+const packageJson = require("./package.json");
+
 // Environment variable overrides
 const config = {
   disableHotReload: process.env.DISABLE_HOT_RELOAD === "true",
@@ -67,6 +70,13 @@ const webpackConfig = {
       if (config.enableHealthCheck && healthPluginInstance) {
         webpackConfig.plugins.push(healthPluginInstance);
       }
+
+      // Add DefinePlugin to expose app version
+      webpackConfig.plugins.push(
+        new webpack.DefinePlugin({
+          "process.env.REACT_APP_VERSION": JSON.stringify(packageJson.version),
+        })
+      );
 
       return webpackConfig;
     },

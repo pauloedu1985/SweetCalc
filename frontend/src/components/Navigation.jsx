@@ -14,7 +14,7 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="border-b bg-card">
+    <nav className="relative border-b bg-card">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
@@ -43,6 +43,9 @@ const Navigation = () => {
             })}
           </div>
         </div>
+      </div>
+      <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+        v{process.env.REACT_APP_VERSION}
       </div>
     </nav>
   );

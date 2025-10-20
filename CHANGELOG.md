@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.1 - 2025-10-20
+
+### Corrigido
+
+- **Segurança:** Removida a exposição de chaves do Firebase no código-fonte. A aplicação agora carrega as chaves a partir de um arquivo `.env.local` não rastreado pelo Git.
+- **Configuração:** O arquivo de configuração do Firebase (`firebase.js`) foi atualizado para usar variáveis de ambiente.
+
 ## v0.2.0 - 2025-10-18
 
 ### Adicionado
