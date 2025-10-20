@@ -32,6 +32,9 @@ function App() {
                     </Routes>
                   </main>
                   <Toaster />
+                  <footer className="p-4 text-center text-sm text-gray-600">
+                    Criado por SysPex Sistemas
+                  </footer>
                 </ProtectedRoute>
               }
             />

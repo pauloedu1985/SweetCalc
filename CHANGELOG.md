@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.2 - 2025-10-20
+
+### Corrigido
+
+- Removida a exibição de uma string de versão (`v1.0.0`) que estava fixa no rodapé da aplicação.
+
 ## v0.2.1 - 2025-10-20
 
 ### Corrigido
